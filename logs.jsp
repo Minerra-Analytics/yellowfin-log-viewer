@@ -80,7 +80,9 @@
             }
         }
     }
-    Collections.sort(fileList, Comparator.comparing(File::getName).reversed());
+    //Collections.sort(fileList, Comparator.comparing(File::getName).reversed());
+    //commented out the 1.8 feature as some clients tomcat instance's jsp engine still suports java 1.7 
+    Collections.sort(fileList, Collections.reverseOrder());
     for(File file: fileList){
         allLogFilesDetailsMap.put(file.getName(), file);
     }
@@ -170,7 +172,7 @@
                         }
                         pageContext.setAttribute("logPreview", logPreview);
                         pageContext.setAttribute("numberOfLinesRead", numberOfLinesRead);
-                    %>		
+                    %>      
                     <div class="mt-3 bg-light">
                         <c:if test="${numberOfLinesRead eq 0}">
                             <h4 class="mb-2"><b><c:out value="${param.selLogFile}"/></b> is empty.</h4>
@@ -301,6 +303,7 @@
                             //a log level info and will reset when a line with any log level info is read
                             //The idea here is to group those lines to the exact log level info line
                             List<String> linesWithNoLogLevelInfo = new ArrayList<String>();
+                            boolean isLogLevelPresentInString = false;
                             if(selectedLogFile != null) {
                                 ReversedLinesFileReader reader = null;
                                 String line  = null;
@@ -327,8 +330,17 @@
                                             //SKIP the line;
                                             continue;
                                         }
-                
-                                        if(!logLevelStringsToCheck.stream().anyMatch(line::contains)){
+                                        isLogLevelPresentInString = false;//reset always first
+                                        for(String logLevelStringToCheck: logLevelStringsToCheck){
+                                            if(line.contains(logLevelStringToCheck)){
+                                                isLogLevelPresentInString = true;
+                                                break;
+                                            }
+                                        }
+
+                                        //if(!logLevelStringsToCheck.stream().anyMatch(line::contains)){
+                                        //commented out the 1.8 feature as some clients tomcat instance's jsp engine still suports java 1.7 
+                                        if(!isLogLevelPresentInString){
                                             //msg+= "line doesnt have any log level.  LINE:  "+line+ "<br/>";
                                             //means this line doesnt have any log level info.
                                             //will this line be a part of any log level, we are yet to find out
@@ -433,9 +445,9 @@
 
                   <p><b>Version Details</b></p>
 
-                  <p>Version: 1.1</p>
+                  <p>Version: 1.2</p>
                   
-                  <p>Release Date: 17-07-2022</p>
+                  <p>Release Date: 15-08-2022</p>
                </div>
            </div>
         </div>
