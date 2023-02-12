@@ -73,14 +73,14 @@
 
     List<File> fileList = new ArrayList<File>();
     Map<String, File> allLogFilesDetailsMap = new LinkedHashMap<String, File>();      
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(propertyValue), "*.log")) {
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(propertyValue), "*.{log,txt,log.*}")) {
         for (Path path : stream) {
             if (!Files.isDirectory(path)) {
                 fileList.add(path.toFile());
             }
         }
     }
-    Collections.sort(fileList, Comparator.comparingLong(File::lastModified).reversed());
+    Collections.sort(fileList, Comparator.comparing(File::getName).reversed());
     for(File file: fileList){
         allLogFilesDetailsMap.put(file.getName(), file);
     }
@@ -433,9 +433,9 @@
 
                   <p><b>Version Details</b></p>
 
-                  <p>Version: 1.0</p>
+                  <p>Version: 1.1</p>
                   
-                  <p>Release Date: 27-06-2022</p>
+                  <p>Release Date: 17-07-2022</p>
                </div>
            </div>
         </div>
