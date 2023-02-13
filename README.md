@@ -28,11 +28,11 @@ Below are the installation instructions for the Yellowfin Log Viewer by Minerra:
 
 1. Log into the Yellowfin server.
 
-2. Download the file logs.jsp to the Yellowfin server using the following link:
+2. Download the `logs.jsp` file to the Yellowfin server using the following link:
 
     - `https://raw.githubusercontent.com/Minerra-Analytics/yellowfin-log-viewer/main/logs.jsp`
 
-3. Copy `logs.jsp` to the following directory on your Yellowfin server:
+3. Copy the downloaded `logs.jsp` file to the following directory on your Yellowfin server:
 
     `[yellowfin-install-directory]/appserver/webapps/ROOT`
   
@@ -40,13 +40,13 @@ Below are the installation instructions for the Yellowfin Log Viewer by Minerra:
 
     - `https://repo1.maven.org/maven2/javax/servlet/jstl/1.2/jstl-1.2.jar`
 
-5. Save the downloaded jstl-1.2.jar file to the following directory on your Yellowfin server:
+5. Copy the downloaded `jstl-1.2.jar` file to the following directory on your Yellowfin server:
 
     `[yellowfin-install-directory]/appserver/webapps/ROOT/WEB-INF/lib`
 
-6. Restart the Yellowfin service. Doing this makes Yellowfin aware of the 'jstl-1.2.jar' library
+6. Restart the Yellowfin service. Doing this makes Yellowfin aware of the `jstl-1.2.jar` library
 
-    - If you are running Yellowfin in a clustered environment, start the Yellowfin service on all nodes in the cluster
+    - If you are running Yellowfin in a clustered environment, start the Yellowfin service on all nodes in the cluster.
 
 # Removing the Yellowfin Log Viewer
 ## The Process
@@ -54,7 +54,7 @@ Below are the instructions to remove for the Yellowfin Log Viewer.
 
   - If you are running Yellowfin in a clustered environment, repeat the following removal instructions for all nodes in the cluster.
 
-1. Delete the 'logs.jsp' file from the following directory on your Yellowfin server:
+1. Delete the `logs.jsp` file from the following directory on your Yellowfin server:
 
     `[yellowfin-install-directory]/appserver/webapps/ROOT`
 
@@ -64,7 +64,7 @@ Below are the instructions to remove for the Yellowfin Log Viewer.
 
 3. Restart the Yellowfin service.
 
-   - If you are running Yellowfin in a clustered environment, repeat the following removal instructions for all nodes in the cluster.
+   - If you are running Yellowfin in a clustered environment, restart the Yellowfin service on all nodes in the cluster.
     
 # How to Use the Yellowfin Logs Viewer
 To use the Yellowfin logs viewer, go to the following URL in a web browser:
