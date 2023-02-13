@@ -83,7 +83,4 @@ Basic is the default mode for the Yellowfin Log Viewer View. Basic mode displays
 ## Advanced
 Click the Advanced tab to switch to Advanced mode. Advanced mode allows displays a user-entered (or a default 100 lines with no value entered) number of log lines from the end of all Yellowfin log files on the server, including archived version of a log file (e.g. yellowfin.log.1).
 
-Advanced mode allows log file entries to be filtered to exclude INFO and/or WARN log entries from the output diplayed. Use the 
-INFO entries
-and/or
-WARN entries
+Advanced mode allows log file entries to be filtered to exclude INFO and/or WARN log entries from the output diplayed. Use the toggle the *Exclude INFO* and/or the *Exclude WARN* options to exclude the types of log entries not required.
