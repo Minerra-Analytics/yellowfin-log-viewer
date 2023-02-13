@@ -7,6 +7,11 @@ Installing the Yellowfin Log Viewer only requires two files to be copied to your
 ## Why Use the Yellowfin Log Viewer?
 While Yellowfin provides exentsive, configurable logging of all functions, the log output is only stored in various files on the Yelowfin server's file system that is often only accessible by an organisation's infrastrucutre team. This can make it difficult for a general Yellowfin devloper or conent creator to get easy and timely assess to the contents of a log file when troubleshooting a problem. The Yellowfin Log Viewer allows the content of all Yellowfin log files to be viewed using a web browser.
 
+## Security Considerations
+Is it important to note that Yellowfin log files can sometimes contain configuration information about Yellowfin and the environment it is running on. It if the Yellowfin instance is exposed to the public internet, it is recommended that access to the logs.jsp URL only be available to whitelisted IP addresses or IP address ranges. This can be achieved by using the [Remote Access Filter](https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#Remote_Address_Filter) and/or the [Remote CIDR Filter](https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#Remote_CIDR_Filter) functionality of the Tomcat appliation server Yellowfin runs on.
+
+Before installing the Yellowfin Log Viewer, consult with your organisation's IT system administrator or security administrator to ensure that all relevant IT system security policies are complied with.
+
 # Installing the Yellowfin Log Viewer
 ## Preparation
 Before adding the Yellowfin log Viewer to a Yellowfin instance obtain the following information:
@@ -25,7 +30,7 @@ Below are the installation instructions for the Yellowfin Log Viewer by Minerra:
 
 2. Download the file logs.jsp to the Yellowfin server using the following link:
 
-    - [logs.jsp](https://raw.githubusercontent.com/Minerra-Analytics/yellowfin-log-viewer/main/logs.jsp)
+    - `https://raw.githubusercontent.com/Minerra-Analytics/yellowfin-log-viewer/main/logs.jsp`
 
 3. Copy `logs.jsp` to the following directory on your Yellowfin server:
 
@@ -33,7 +38,7 @@ Below are the installation instructions for the Yellowfin Log Viewer by Minerra:
   
 4. Download the file `jstl-1.2.jar` (i.e. JavaServer Pages Standard Tag Library Version 1.2) to the Yellowfin server using the following link:
 
-    - [jstl-1.2.jar](https://repo1.maven.org/maven2/javax/servlet/jstl/1.2/jstl-1.2.jar)
+    - `https://repo1.maven.org/maven2/javax/servlet/jstl/1.2/jstl-1.2.jar`
 
 5. Save the downloaded jstl-1.2.jar file to the following directory on your Yellowfin server:
 
