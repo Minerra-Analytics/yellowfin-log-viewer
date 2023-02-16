@@ -30,19 +30,27 @@ Below are the installation instructions for the Yellowfin Log Viewer by Minerra:
 
 2. Download the `logs.jsp` file to the Yellowfin server using the following link:
 
-    - `https://raw.githubusercontent.com/Minerra-Analytics/yellowfin-log-viewer/main/logs.jsp`
+    ```
+    https://raw.githubusercontent.com/Minerra-Analytics/yellowfin-log-viewer/main/logs.jsp
+    ```
 
 3. Copy the downloaded `logs.jsp` file to the following directory on your Yellowfin server:
 
-    `[yellowfin-install-directory]/appserver/webapps/ROOT`
+   ```
+   [yellowfin-install-directory]/appserver/webapps/ROOT
+   ```
   
 4. Download the file `jstl-1.2.jar` (i.e. JavaServer Pages Standard Tag Library Version 1.2) to the Yellowfin server using the following link:
 
-    - `https://repo1.maven.org/maven2/javax/servlet/jstl/1.2/jstl-1.2.jar`
+    ```
+    https://repo1.maven.org/maven2/javax/servlet/jstl/1.2/jstl-1.2.jar
+    ```
 
 5. Copy the downloaded `jstl-1.2.jar` file to the following directory on your Yellowfin server:
 
-    `[yellowfin-install-directory]/appserver/webapps/ROOT/WEB-INF/lib`
+    ```
+    [yellowfin-install-directory]/appserver/webapps/ROOT/WEB-INF/lib
+    ```
 
 6. Restart the Yellowfin service. Doing this makes Yellowfin aware of the `jstl-1.2.jar` library
 
@@ -56,11 +64,15 @@ Below are the instructions to remove for the Yellowfin Log Viewer.
 
 1. Delete the `logs.jsp` file from the following directory on your Yellowfin server:
 
-    `[yellowfin-install-directory]/appserver/webapps/ROOT`
+    ```
+    [yellowfin-install-directory]/appserver/webapps/ROOT
+    ```
 
 2. Delete the `jstl-1.2.jar` file from the following directory on your Yellowfin server:
 
-    `[yellowfin-install-directory]/appserver/webapps/ROOT/WEB-INF/lib`
+    ```
+    [yellowfin-install-directory]/appserver/webapps/ROOT/WEB-INF/lib
+    ```
 
 3. Restart the Yellowfin service.
 
@@ -69,11 +81,15 @@ Below are the instructions to remove for the Yellowfin Log Viewer.
 # How to Use the Yellowfin Logs Viewer
 To use the Yellowfin logs viewer, go to the following URL in a web browser:
 
-  `[address-of-yellowfin-server]/logs.jsp`
+  ```
+  [address-of-yellowfin-server]/logs.jsp
+  ```
 
 for example:
 
-  `http://yellowfin.company.com/logs.jsp`
+  ```
+  http://yellowfin.company.com/logs.jsp
+  ```
 
 The Yellowfin Logs Viewer has two modes, Basic and Advanced. Each mode is decribed below.
 
