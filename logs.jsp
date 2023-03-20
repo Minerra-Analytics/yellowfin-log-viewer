@@ -455,9 +455,9 @@
 
                   <p><b>Version Details</b></p>
 
-                  <p>Version: 1.3</p>
+                  <p>Version: 1.4</p>
                   
-                  <p>Release Date: 13-02-2023</p>
+                  <p>Release Date: 20-03-2023</p>
                </div>
            </div>
         </div>
