@@ -13,8 +13,15 @@ Is it important to note that Yellowfin log files can sometimes contain configura
 Before installing the Yellowfin Log Viewer, consult with your organisation's IT system administrator or security administrator to ensure that all relevant IT system security policies are complied with.
 
 # Installing the Yellowfin Log Viewer
+## Compatibility
+Yellowfin Log Viewer is only compatible with Yellowfin instances that use the Log4j2 logging platform, that is:
+- Yellowfin 8
+  - Version 8.0.8 Build 20201215 or later
+- Yellowfin 9
+  - Version 9.4.0 Build 20201204 or later
+
 ## Preparation
-Before adding the Yellowfin log Viewer to a Yellowfin instance obtain the following information:
+Before adding the Yellowfin Log Viewer to a Yellowfin instance obtain the following information:
 
 1. User credentials with administrator permissions for the server Yellowfin is installed on.
 2. The directory on the Yellowfin server the Yellowfin application was installed in.
