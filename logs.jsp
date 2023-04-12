@@ -68,6 +68,16 @@
     StrSubstitutor strSubstitutor = configuration.getStrSubstitutor();
     StrLookup variableResolver = strSubstitutor.getVariableResolver();
     String propertyValue = variableResolver.lookup("logDir");
+    if(propertyValue == null || propertyValue.trim().length() == 0){
+        //seems there is no property with 'logDir' present. proabably the 
+        //log4j2.xml was automatically upgraded. Need to find the logDir from the 'applog' rolling file appender
+        Appender appender = configuration.getAppender("applog");
+        String fileName = null;
+        if (appender instanceof RollingFileAppender) {
+            fileName =  ((RollingFileAppender)appender).getFileName();
+            propertyValue = fileName.substring(0, fileName.lastIndexOf("/"));
+        }
+    }
     //pageContext.setAttribute("configuration", configuration);
     //pageContext.setAttribute("logDir",  propertyValue);
 
@@ -445,9 +455,9 @@
 
                   <p><b>Version Details</b></p>
 
-                  <p>Version: 1.3</p>
+                  <p>Version: 1.4</p>
                   
-                  <p>Release Date: 13-02-2023</p>
+                  <p>Release Date: 20-03-2023</p>
                </div>
            </div>
         </div>
