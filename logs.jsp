@@ -4,6 +4,8 @@
 <%@ page import="com.hof.mi.web.service.*" %>
 <%@ page import="org.apache.commons.io.input.ReversedLinesFileReader" %>
 <%@ page import="java.io.*" %>
+<%@ page import="org.apache.commons.codec.binary.Base64" %>
+<%@ page import="org.apache.commons.io.IOUtils" %>
 <%@ page import="org.apache.logging.log4j.LogManager" %>
 <%@ page import="org.apache.logging.log4j.core.Appender" %>
 <%@ page import="org.apache.logging.log4j.core.appender.*" %>
@@ -22,6 +24,9 @@
 <title>Yellowfin Log Viewer by Minerra</title>
 <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"
+			  integrity="sha256-a2yjHM4jnF9f54xUQakjZGaqYs/V1CYvWpoqZzC2/Bw="
+			  crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <style type="text/css">
@@ -103,6 +108,9 @@
         tabMode = "basic"; //default to basic mode always
     }
     pageContext.setAttribute("tabMode",  tabMode);
+
+    String downloadFileMode = request.getParameter("downloadFile");
+    pageContext.setAttribute("downloadFileMode",  downloadFileMode);
 %>
 <div class="container-fluid p-3 bg-light px-0">
     <h4 class="mx-4 mb-2">Yellowfin Log Viewer by <a href="http://www.minerra.net" class="link-primary text-decoration-none" target="_blank" rel="noopener noreferrer">Minerra</a></h4> 
@@ -138,7 +146,7 @@
                     </div>
                     <div class="row mb-3">
                        <div class="col-sm-2">
-                           <button type="submit" class="btn btn-primary">Show Log Entries</button>
+                           <button type="submit" class="btn btn-primary">View Log Entries</button>
                        </div>
                     </div>
                 </form>
@@ -195,13 +203,13 @@
                 </c:if>
             </div>
             <div class="tab-pane fade <c:if test="${tabMode eq \"advanced\"}">show active</c:if>" id="advanced">
-                <form method="post">
+                <form method="post" onsubmit="return submitAdvancedTabForm()">
                     <div class="row mb-3">
                         <div class="col-sm-4">
                             <label for="selLogFile" class="col-form-label">Log File Name (Choose One):</label>
                             <select id="selLogFile" name="selLogFile" class="form-select">
                             <c:forEach items="${allLogFilesDetailsMap}" var="currLogFile">
-                                    <option value="${currLogFile.key}" ${currLogFile.key == param.selLogFile ? 'selected' : ''}>${currLogFile.key}</option>
+                                    <option data-fileSize="${currLogFile.value.length()}" value="${currLogFile.key}" ${currLogFile.key == param.selLogFile ? 'selected' : ''}>${currLogFile.key}</option>
                                 </c:forEach>
                             </select>
                         </div>
@@ -227,209 +235,256 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                       <div class="col-sm-2">
-                           <button type="submit" class="btn btn-primary">Show Log Entries</button>
+                       <div class="col-sm-4">
+                           <button type="submit" class="btn btn-primary">View Log Entries</button>
+                           <button type="submit" id="downloadFile" name="downloadFile" value="downloadFile" class="btn btn-primary">Download Full File</button>
                        </div>
-                    </div>
-                </form>
+                </form> 
                 <c:if test="${pageContext.request.method=='POST' and tabMode eq \"advanced\"}">
-                    <%
-                        boolean excludeTypeInfo = Boolean.parseBoolean(request.getParameter("excludeTypeInfo"));
-                        boolean excludeTypeWarn = Boolean.parseBoolean(request.getParameter("excludeTypeWarn"));
-                       
-                        String reqNumLines = request.getParameter("numLinesAdv");
-                        int requestedNumberOfLines = 100; //by default initialize as 100
-                        if(reqNumLines!=null && reqNumLines.trim().length() > 0){
-                            requestedNumberOfLines = Integer.valueOf(reqNumLines);
-                        }
-                        String selLogFile = request.getParameter("selLogFile");
-                        File selectedLogFile = null;
-                        if(allLogFilesDetailsMap.containsKey(selLogFile)){
-                            selectedLogFile = allLogFilesDetailsMap.get(selLogFile);
-                        }
-                        String logPreview = "";
-                        int numberOfLinesRead = 0;
-                        String msg="";
-                        if(!excludeTypeInfo && !excludeTypeWarn) {
-                            //This is a normal flow.
-                            if(selectedLogFile != null) {
-                                ReversedLinesFileReader reader = null;
-                                String line  = null;
-                                try {
-                                    reader = new ReversedLinesFileReader(selectedLogFile);
-                                    while(numberOfLinesRead < requestedNumberOfLines) {
-                                        if (reader==null) {
-                                            break;
-                                        }
-                                        line = reader.readLine();
-                                        if(line == null) {
-                                            //means no more lines to read
-                                            break;
-                                        }
-                                        if(line.trim().length() == 0) {
-                                            //means an empty line
-                                            //SKIP the line;
-                                            continue;
-                                        }
-                                        logPreview = line + System.lineSeparator() + logPreview;
-                                        numberOfLinesRead++;
-                                    }
-                                }catch(Exception ex){
-                                    //swallow exception?
-                                    ex.printStackTrace();
-                                }finally{
-                                    if(reader!=null) reader.close();
+                    <c:choose>
+                        <c:when test="${downloadFileMode eq \"downloadFile\"}">
+                            <!-- Implement the downLoad file logic here -->
+                            <%
+                                String selLogFile = request.getParameter("selLogFile");
+                                File selectedLogFile = null;
+                                if(allLogFilesDetailsMap.containsKey(selLogFile)){
+                                    selectedLogFile = allLogFilesDetailsMap.get(selLogFile);
                                 }
+                                String fileData = null;
+                                if(selectedLogFile != null) {
+                                    //read the file data
+                                    FileInputStream fileIS = null;
+                                    try {
+                                        fileIS = new FileInputStream(selectedLogFile);
+                                        byte[] sourceBytes = IOUtils.toByteArray(fileIS);
+                                        fileData = Base64.encodeBase64String(sourceBytes);
+                                    }catch(Exception ex){
+                                        ex.printStackTrace();
+                                    }finally {
+                                        if(fileIS!=null){
+                                            fileIS.close();
+                                        }
+                                    }
+                                }
+                                //set the file data to the pageContext
+                                pageContext.setAttribute("fileData", fileData);
+                            %>
+                            <script type="text/javascript">
+                                //use EL to read the fileData and assign to a javascript variable
+                                var fileData = '${fileData}';
+                                var logFileName = '${param.selLogFile}';
+                                //1) create an anchor element and set the 'href' to a DATA URL
+                                //https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs
+                                //2) programatically click the anchor element
+                                function triggerAutoDownload(logFileName, fileData){
+                                    var pre = "data:text/plain;charset=UTF-8;base64,";
+                                    var $aEle = $($('<a>')[0]).attr('href', pre + fileData).attr('download', logFileName);
+                                    $aEle.get(0).click();
+                                }
+                                //execute the script straightaway
+                                triggerAutoDownload(logFileName, fileData);
+                            </script>
+                        </c:when>
+                        <c:otherwise>
+                        <%
+                            boolean excludeTypeInfo = Boolean.parseBoolean(request.getParameter("excludeTypeInfo"));
+                            boolean excludeTypeWarn = Boolean.parseBoolean(request.getParameter("excludeTypeWarn"));
+                        
+                            String reqNumLines = request.getParameter("numLinesAdv");
+                            int requestedNumberOfLines = 100; //by default initialize as 100
+                            if(reqNumLines!=null && reqNumLines.trim().length() > 0){
+                                requestedNumberOfLines = Integer.valueOf(reqNumLines);
                             }
-                        }else{
-                            //msg = "Inside else <br/>";
-                            //User has requested to exclude INFO or/and WARN log messages
-                            List<String> logLevelStringsToCheck = new ArrayList<String>();
-                            logLevelStringsToCheck.add("TRACE ");
-                            logLevelStringsToCheck.add("TRACE:");
-                            logLevelStringsToCheck.add("DEBUG ");
-                            logLevelStringsToCheck.add("DEBUG:");
-                            logLevelStringsToCheck.add("INFO ");
-                            logLevelStringsToCheck.add("INFO:");
-                            logLevelStringsToCheck.add("ERROR ");
-                            logLevelStringsToCheck.add("ERROR:");
-                            logLevelStringsToCheck.add("FATAL ");
-                            logLevelStringsToCheck.add("FATAL:");
-                            logLevelStringsToCheck.add("SEVERE ");
-                            logLevelStringsToCheck.add("SEVERE:");
-                            logLevelStringsToCheck.add("WARN ");
-                            logLevelStringsToCheck.add("WARN:");
-                            logLevelStringsToCheck.add("NOTICE ");
-                            logLevelStringsToCheck.add("NOTICE:");
-                            logLevelStringsToCheck.add("[info] ");
-                            logLevelStringsToCheck.add("WARNING ");
-                            //excluding INFO/WARN msges is an entirely different workflow
-                            //reason is that we might need to skip lines which are part of the
-                            //warn messages. The difficulty here is that we are reading the file in reverse 
-                            //order and hence the lines which are part of the actual INFO/WARN message
-                            //might have alredy been read by the program even before reaching the actual INFO/WARN msg line
-                            List<String> readLines = new ArrayList<String>();
-                            //Since we are reading lines in reverse order, this list will hold the lines which doesnt have
-                            //a log level info and will reset when a line with any log level info is read
-                            //The idea here is to group those lines to the exact log level info line
-                            List<String> linesWithNoLogLevelInfo = new ArrayList<String>();
-                            boolean isLogLevelPresentInString = false;
-                            if(selectedLogFile != null) {
-                                ReversedLinesFileReader reader = null;
-                                String line  = null;
-                                try {
-                                    reader = new ReversedLinesFileReader(selectedLogFile);
-                                    while(numberOfLinesRead < requestedNumberOfLines) {
-                                        if (reader==null) {
-                                            break;
-                                        }
-                                        line = reader.readLine();
-                                        if(line == null) {
-                                            //means no more lines to read
-                                            if(!linesWithNoLogLevelInfo.isEmpty()){
-                                                //means some lines was there wth no info, we havent yet added this
-                                                //we have no more lines to read as well. so add these lines to the actual data
-                                                readLines.addAll(linesWithNoLogLevelInfo);
-                                                numberOfLinesRead = numberOfLinesRead + linesWithNoLogLevelInfo.size();
-                                            }
-                                            break;
-                                        }
-                
-                                        if(line.trim().length() == 0) {
-                                            //means an empty line
-                                            //SKIP the line;
-                                            continue;
-                                        }
-                                        isLogLevelPresentInString = false;//reset always first
-                                        for(String logLevelStringToCheck: logLevelStringsToCheck){
-                                            if(line.contains(logLevelStringToCheck)){
-                                                isLogLevelPresentInString = true;
+                            String selLogFile = request.getParameter("selLogFile");
+                            File selectedLogFile = null;
+                            if(allLogFilesDetailsMap.containsKey(selLogFile)){
+                                selectedLogFile = allLogFilesDetailsMap.get(selLogFile);
+                            }
+                            String logPreview = "";
+                            int numberOfLinesRead = 0;
+                            String msg="";
+                            if(!excludeTypeInfo && !excludeTypeWarn) {
+                                //This is a normal flow.
+                                if(selectedLogFile != null) {
+                                    ReversedLinesFileReader reader = null;
+                                    String line  = null;
+                                    try {
+                                        reader = new ReversedLinesFileReader(selectedLogFile);
+                                        while(numberOfLinesRead < requestedNumberOfLines) {
+                                            if (reader==null) {
                                                 break;
                                             }
-                                        }
-
-                                        //if(!logLevelStringsToCheck.stream().anyMatch(line::contains)){
-                                        //commented out the 1.8 feature as some clients tomcat instance's jsp engine still suports java 1.7 
-                                        if(!isLogLevelPresentInString){
-                                            //msg+= "line doesnt have any log level.  LINE:  "+line+ "<br/>";
-                                            //means this line doesnt have any log level info.
-                                            //will this line be a part of any log level, we are yet to find out
-                                            linesWithNoLogLevelInfo.add(line);
-                                            //msg+= "!! Skipping line" + "<br/>";
-                                            continue;
-                                        }else{
-                                            //msg+= "line has a log level.  LINE:  "+line+ "<br/>";
-                                            //This line has a log level, do we have any read lines with no log levels present in linesWithNoLogLevelInfo?
-                                            //if yes then, those lines should not be read if this lines' log level is either 
-                                            //INFO or WARN as the user has requested to exclude those lines
-                                            if(excludeTypeInfo && 
-                                                (line.contains(" INFO") || line.contains("[info]"))){
-                                                if(!linesWithNoLogLevelInfo.isEmpty()){
-                                                    //lines present in 'linesWithNoLogLevelInfo' also needs to be skipped
-                                                    //also we need to reset 'linesWithNoLogLevelInfo' list
-                                                    linesWithNoLogLevelInfo.clear();
-                                                }
-                                                //SKIP the line
-                                                //msg+= ">>> Skipping line" + "<br/>";
+                                            line = reader.readLine();
+                                            if(line == null) {
+                                                //means no more lines to read
+                                                break;
+                                            }
+                                            if(line.trim().length() == 0) {
+                                                //means an empty line
+                                                //SKIP the line;
                                                 continue;
                                             }
-                
-                                            if(excludeTypeWarn && line.contains(" WARN")){
-                                                if(!linesWithNoLogLevelInfo.isEmpty()){
-                                                    //lines present in 'linesWithNoLogLevelInfo' also needs to be skipped
-                                                    //also we need to reset 'linesWithNoLogLevelInfo' list
-                                                    linesWithNoLogLevelInfo.clear();
-                                                }
-                                                //SKIP the line
-                                                //msg+= "*** Skipping line" + "<br/>";
-                                                continue;
-                                            }
-                
-                                            //we can safely assume that this 'line' has neither INFO nor WARN levels
-                                            if(!linesWithNoLogLevelInfo.isEmpty()){
-                                                //lines present in 'linesWithNoLogLevelInfo' shoudl not be skipped
-                                                //Add these lines lso the the actual readlines
-                                                readLines.addAll(linesWithNoLogLevelInfo);
-                                                numberOfLinesRead = numberOfLinesRead + linesWithNoLogLevelInfo.size();
-                                                //also we need to reset 'linesWithNoLogLevelInfo' list
-                                                linesWithNoLogLevelInfo.clear();
-                                            }
-                                            //msg+= "adding LINE:  "+line+ "<br/>";
-                                            readLines.add(line);
+                                            logPreview = line + System.lineSeparator() + logPreview;
                                             numberOfLinesRead++;
                                         }
+                                    }catch(Exception ex){
+                                        //swallow exception?
+                                        ex.printStackTrace();
+                                    }finally{
+                                        if(reader!=null) reader.close();
                                     }
-                                }catch(Exception ex){
-                                    //swallow exception?
-                                    ex.printStackTrace();
-                                }finally{
-                                    if(reader!=null) reader.close();
                                 }
+                            }else{
+                                //msg = "Inside else <br/>";
+                                //User has requested to exclude INFO or/and WARN log messages
+                                List<String> logLevelStringsToCheck = new ArrayList<String>();
+                                logLevelStringsToCheck.add("TRACE ");
+                                logLevelStringsToCheck.add("TRACE:");
+                                logLevelStringsToCheck.add("DEBUG ");
+                                logLevelStringsToCheck.add("DEBUG:");
+                                logLevelStringsToCheck.add("INFO ");
+                                logLevelStringsToCheck.add("INFO:");
+                                logLevelStringsToCheck.add("ERROR ");
+                                logLevelStringsToCheck.add("ERROR:");
+                                logLevelStringsToCheck.add("FATAL ");
+                                logLevelStringsToCheck.add("FATAL:");
+                                logLevelStringsToCheck.add("SEVERE ");
+                                logLevelStringsToCheck.add("SEVERE:");
+                                logLevelStringsToCheck.add("WARN ");
+                                logLevelStringsToCheck.add("WARN:");
+                                logLevelStringsToCheck.add("NOTICE ");
+                                logLevelStringsToCheck.add("NOTICE:");
+                                logLevelStringsToCheck.add("[info] ");
+                                logLevelStringsToCheck.add("WARNING ");
+                                //excluding INFO/WARN msges is an entirely different workflow
+                                //reason is that we might need to skip lines which are part of the
+                                //warn messages. The difficulty here is that we are reading the file in reverse 
+                                //order and hence the lines which are part of the actual INFO/WARN message
+                                //might have alredy been read by the program even before reaching the actual INFO/WARN msg line
+                                List<String> readLines = new ArrayList<String>();
+                                //Since we are reading lines in reverse order, this list will hold the lines which doesnt have
+                                //a log level info and will reset when a line with any log level info is read
+                                //The idea here is to group those lines to the exact log level info line
+                                List<String> linesWithNoLogLevelInfo = new ArrayList<String>();
+                                boolean isLogLevelPresentInString = false;
+                                if(selectedLogFile != null) {
+                                    ReversedLinesFileReader reader = null;
+                                    String line  = null;
+                                    try {
+                                        reader = new ReversedLinesFileReader(selectedLogFile);
+                                        while(numberOfLinesRead < requestedNumberOfLines) {
+                                            if (reader==null) {
+                                                break;
+                                            }
+                                            line = reader.readLine();
+                                            if(line == null) {
+                                                //means no more lines to read
+                                                if(!linesWithNoLogLevelInfo.isEmpty()){
+                                                    //means some lines was there wth no info, we havent yet added this
+                                                    //we have no more lines to read as well. so add these lines to the actual data
+                                                    readLines.addAll(linesWithNoLogLevelInfo);
+                                                    numberOfLinesRead = numberOfLinesRead + linesWithNoLogLevelInfo.size();
+                                                }
+                                                break;
+                                            }
+                    
+                                            if(line.trim().length() == 0) {
+                                                //means an empty line
+                                                //SKIP the line;
+                                                continue;
+                                            }
+                                            isLogLevelPresentInString = false;//reset always first
+                                            for(String logLevelStringToCheck: logLevelStringsToCheck){
+                                                if(line.contains(logLevelStringToCheck)){
+                                                    isLogLevelPresentInString = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            //if(!logLevelStringsToCheck.stream().anyMatch(line::contains)){
+                                            //commented out the 1.8 feature as some clients tomcat instance's jsp engine still suports java 1.7 
+                                            if(!isLogLevelPresentInString){
+                                                //msg+= "line doesnt have any log level.  LINE:  "+line+ "<br/>";
+                                                //means this line doesnt have any log level info.
+                                                //will this line be a part of any log level, we are yet to find out
+                                                linesWithNoLogLevelInfo.add(line);
+                                                //msg+= "!! Skipping line" + "<br/>";
+                                                continue;
+                                            }else{
+                                                //msg+= "line has a log level.  LINE:  "+line+ "<br/>";
+                                                //This line has a log level, do we have any read lines with no log levels present in linesWithNoLogLevelInfo?
+                                                //if yes then, those lines should not be read if this lines' log level is either 
+                                                //INFO or WARN as the user has requested to exclude those lines
+                                                if(excludeTypeInfo && 
+                                                    (line.contains(" INFO") || line.contains("[info]"))){
+                                                    if(!linesWithNoLogLevelInfo.isEmpty()){
+                                                        //lines present in 'linesWithNoLogLevelInfo' also needs to be skipped
+                                                        //also we need to reset 'linesWithNoLogLevelInfo' list
+                                                        linesWithNoLogLevelInfo.clear();
+                                                    }
+                                                    //SKIP the line
+                                                    //msg+= ">>> Skipping line" + "<br/>";
+                                                    continue;
+                                                }
+                    
+                                                if(excludeTypeWarn && line.contains(" WARN")){
+                                                    if(!linesWithNoLogLevelInfo.isEmpty()){
+                                                        //lines present in 'linesWithNoLogLevelInfo' also needs to be skipped
+                                                        //also we need to reset 'linesWithNoLogLevelInfo' list
+                                                        linesWithNoLogLevelInfo.clear();
+                                                    }
+                                                    //SKIP the line
+                                                    //msg+= "*** Skipping line" + "<br/>";
+                                                    continue;
+                                                }
+                    
+                                                //we can safely assume that this 'line' has neither INFO nor WARN levels
+                                                if(!linesWithNoLogLevelInfo.isEmpty()){
+                                                    //lines present in 'linesWithNoLogLevelInfo' shoudl not be skipped
+                                                    //Add these lines lso the the actual readlines
+                                                    readLines.addAll(linesWithNoLogLevelInfo);
+                                                    numberOfLinesRead = numberOfLinesRead + linesWithNoLogLevelInfo.size();
+                                                    //also we need to reset 'linesWithNoLogLevelInfo' list
+                                                    linesWithNoLogLevelInfo.clear();
+                                                }
+                                                //msg+= "adding LINE:  "+line+ "<br/>";
+                                                readLines.add(line);
+                                                numberOfLinesRead++;
+                                            }
+                                        }
+                                    }catch(Exception ex){
+                                        //swallow exception?
+                                        ex.printStackTrace();
+                                    }finally{
+                                        if(reader!=null) reader.close();
+                                    }
+                                }
+                                if(!readLines.isEmpty()) {
+                                    //now the readLines have the content we need
+                                    Collections.reverse(readLines);
+                                    for(String data: readLines){
+                                        logPreview = logPreview + System.lineSeparator() + data;
+                                    }
+                                    //reset the numberOfLinesRead size
+                                    //todo is this needed?????
+                                    numberOfLinesRead =  readLines.size();  
+                                }                        
                             }
-                            if(!readLines.isEmpty()) {
-                                //now the readLines have the content we need
-                                Collections.reverse(readLines);
-                                for(String data: readLines){
-                                    logPreview = logPreview + System.lineSeparator() + data;
-                                }
-                                //reset the numberOfLinesRead size
-                                //todo is this needed?????
-                                numberOfLinesRead =  readLines.size();  
-                            }                        
-                        }
-                        pageContext.setAttribute("logPreview", logPreview);
-                        pageContext.setAttribute("numberOfLinesRead", numberOfLinesRead);
-                        //pageContext.setAttribute("msg", msg);
-                    %>
-                    <div class="mt-3 bg-light">
-                        <c:if test="${numberOfLinesRead eq 0}">
-                            <h4 class="mb-2"><b><c:out value="${param.selLogFile}"/></b> is empty.</h4>
-                        </c:if>
-                        <c:if test="${numberOfLinesRead gt 0}">
-                            <h4 class="mb-2">Displaying <b>last <c:out value="${numberOfLinesRead}" default="100"/> </b>lines of  <b><c:out value="${param.selLogFile}"/></b></h4>
-                                <pre><c:out value="${logPreview}" escapeXml="false"/></pre>
-                        </c:if>
-                    </div>
+                            pageContext.setAttribute("logPreview", logPreview);
+                            pageContext.setAttribute("numberOfLinesRead", numberOfLinesRead);
+                            //pageContext.setAttribute("msg", msg);
+                        %>
+                        <div class="mt-3 bg-light">
+                            <c:if test="${numberOfLinesRead eq 0}">
+                                <h4 class="mb-2"><b><c:out value="${param.selLogFile}"/></b> is empty.</h4>
+                            </c:if>
+                            <c:if test="${numberOfLinesRead gt 0}">
+                                <h4 class="mb-2">Displaying <b>last <c:out value="${numberOfLinesRead}" default="100"/> </b>lines of  <b><c:out value="${param.selLogFile}"/></b></h4>
+                                    <pre><c:out value="${logPreview}" escapeXml="false"/></pre>
+                            </c:if>
+                        </div>
+                        </c:otherwise>
+                    </c:choose>
                 </c:if>
             </div>
             <div class="tab-pane fade" id="about">
@@ -472,6 +527,36 @@
   </footer>
 </div>
 <script type="text/javascript">
+    //The maximum file size allowed to be downloaded in KiloBytes
+    let maxAllowedFileSizeToDownloadInKB = 20000; //Change this to the appropriate limit
+    let infoMsgPart1 = "This log file cannot be downloaded because the file's size is greater than the ";
+    let infoMsgPart2 = "20 MB limit."; //Change the XX MB to the appropriate limit
+    let infoMsgPart3 =  " If you need this log file please contact your Yellowfin system administrator.";
+    let isSelFileAllowedToDownload = true;
+
+    function submitAdvancedTabForm(){
+        return isSelFileAllowedToDownload;
+    }
+
+    $(document).ready(function(){
+        bindEvent();
+    });
+
+    function bindEvent(){
+        $("#downloadFile").click(function(){
+            isSelFileAllowedToDownload = true; //reset always
+            //validate the file size before submitting
+            let selLogFileSize = $('div #advanced').find('#selLogFile option:selected').attr('data-fileSize');
+            //convert bytes to KB
+            let sizeInKB = (selLogFileSize/1024);
+            if(sizeInKB > maxAllowedFileSizeToDownloadInKB){
+                //show the error msg as a normal alert window
+                alert(infoMsgPart1 + infoMsgPart2 + infoMsgPart3);
+                isSelFileAllowedToDownload = false;
+            }
+        });
+    }
+    
     //From Steve: Test the size of the number entered and reject an entry great there 32,767
     function setInputFilter(textbox, inputFilter, errMsg) {
         ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop", "focusout"].
