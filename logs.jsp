@@ -510,9 +510,9 @@
 
                   <p><b>Version Details</b></p>
 
-                  <p>Version: 1.4</p>
+                  <p>Version: 1.5</p>
                   
-                  <p>Release Date: 20-03-2023</p>
+                  <p>Release Date: 13-04-2023</p>
                </div>
            </div>
         </div>
