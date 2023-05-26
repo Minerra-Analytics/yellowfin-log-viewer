@@ -239,6 +239,7 @@
                            <button type="submit" class="btn btn-primary">View Log Entries</button>
                            <button type="submit" id="downloadFile" name="downloadFile" value="downloadFile" class="btn btn-primary">Download Full File</button>
                        </div>
+		    </div>
                 </form> 
                 <c:if test="${pageContext.request.method=='POST' and tabMode eq \"advanced\"}">
                     <c:choose>
