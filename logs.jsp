@@ -511,9 +511,9 @@
 
                   <p><b>Version Details</b></p>
 
-                  <p>Version: 1.5</p>
+                  <p>Version: 1.5.1</p>
                   
-                  <p>Release Date: 13-04-2023</p>
+                  <p>Release Date: 29-05-2023</p>
                </div>
            </div>
         </div>
