@@ -71,18 +71,27 @@
     LoggerContext  loggerContext = ((org.apache.logging.log4j.core.Logger)rootLogger).getContext();
     Configuration configuration = loggerContext.getConfiguration();
     StrSubstitutor strSubstitutor = configuration.getStrSubstitutor();
-    StrLookup variableResolver = strSubstitutor.getVariableResolver();
-    String propertyValue = variableResolver.lookup("logDir");
-    if(propertyValue == null || propertyValue.trim().length() == 0){
-        //seems there is no property with 'logDir' present. proabably the 
-        //log4j2.xml was automatically upgraded. Need to find the logDir from the 'applog' rolling file appender
+
+    // Attempt to get and resolve logDir
+    String propertyValue = strSubstitutor.replace(strSubstitutor.getVariableResolver().lookup("logDir"));
+
+    // Fallback logic if logDir is missing or failed to resolve
+    if(propertyValue == null || propertyValue.trim().length() == 0 || propertyValue.contains("${")){
         Appender appender = configuration.getAppender("applog");
-        String fileName = null;
         if (appender instanceof RollingFileAppender) {
-            fileName =  ((RollingFileAppender)appender).getFileName();
+            String fileName = ((RollingFileAppender)appender).getFileName();
+            // Resolve the filename as well, just in case it contains variables
+            fileName = strSubstitutor.replace(fileName); 
             propertyValue = fileName.substring(0, fileName.lastIndexOf("/"));
         }
     }
+
+    // Final Safety Check: If we still have an unresolved variable or null, 
+    // default to a known safe relative path or handle the error gracefully
+    if (propertyValue == null || propertyValue.contains("${")) {
+        propertyValue = System.getProperty("catalina.home") + "/logs";
+    }
+
     //pageContext.setAttribute("configuration", configuration);
     //pageContext.setAttribute("logDir",  propertyValue);
 
