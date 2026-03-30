@@ -520,9 +520,9 @@
 
                   <p><b>Version Details</b></p>
 
-                  <p>Version: 1.5.1</p>
+                  <p>Version: 1.5.2</p>
                   
-                  <p>Release Date: 29-05-2023</p>
+                  <p>Release Date: 30-03-2026</p>
                </div>
            </div>
         </div>
@@ -531,7 +531,7 @@
       <div class="row">
           <div class="col-md-6 offset-md-3">
               <hr>
-              <p class="text-center">Copyright &copy; 2022 Minerra Pty Ltd</p>
+              <p class="text-center">Copyright &copy; 2026 Minerra Pty Ltd</p>
           </div>
       </div>
   </footer>
